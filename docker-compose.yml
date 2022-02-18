@@ -1,0 +1,51 @@
+version: '3.4'
+services: 
+  mongodb:
+    image: mongo
+    container_name: "mongodb"
+    networks: 
+      - databases
+    volumes: 
+      - ./_databases/mongodb/mongo-data:/data/db
+    ports: 
+      - 27017:27017
+    command: mongod
+  mevn-back:
+    build:
+      context: ./mevn-back
+    volumes: 
+      - ./.git:/usr/src/.git
+      - ./mevn-back:/usr/src/mevn-back
+      - /usr/src/mevn-back/node_modules
+    depends_on:
+      - mongodb
+    ports: 
+      - "3001:3001"
+    environment:
+      WAIT_HOSTS: mongodb:27017
+    networks: 
+      - mevn-back
+      - databases
+  mevn-front:
+    build:
+      context: ./mevn-front
+    volumes: 
+      - ./mevn-front:/usr/src/mevn-front
+      - /usr/src/mevn-front/node_modules
+    ports: 
+      - "3002:3002"
+    networks: 
+      - mevn-back
+  mevn-dashboard:
+    build: 
+      context: ./mevn-dashboard
+    volumes: 
+      - ./mevn-dashboard:/usr/src/mevn-dashboard
+      - /usr/src/mevn-dashboard/node_modules
+    ports: 
+      - "3000:3000"
+    networks: 
+      - mevn-back
+networks: 
+  mevn-back:
+  databases:
